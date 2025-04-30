@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My e-Portfolio</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      height: 100vh;
+      width: 100%;
+      background-color: black;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background Image */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('Assets/BG.gif');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.9;
+      z-index: -3;
+    }
+
+    /* Neon Cursor's Canvas */
+    canvas {
+      opacity: 0.3;
+      z-index: -4;
+    }
+
+    /* Image Layers */
+    .image-above-bg, .image-on-top, .image-on-top1 {
+      position: absolute;
+      opacity: 0.9;
+      z-index: -2;
+      min-width: 1200px;
+    }
+
+    .image-above-bg {
+      object-fit: fill;
+      width: 100%;
+      height: 100%;
+    }
+
+    .image-on-top, .image-on-top1 {
+      width: 100%;
+    }
+
+    /* Smaller Screen */
+    @media (max-height: 630px) {
+      .image-on-top, .image-on-top1 {
+        top: -100px;
+      }
+
+      .button-one {
+        top: 175px !important;
+        left: 100px;
+      }
+
+      .button-two {
+        top: 225px !important;
+        left: 80px;
+      }
+
+      .button-three {
+        top: 275px !important;
+        left: 105px;
+      }
+    }
+
+    @media (max-width: 550px) {
+      .image-above-bg, .image-on-top, .image-on-top1 {
+        left: -50px;
+      }
+    }
+
+    /* Hover Effect Images */
+    .button-one, .button-two, .button-three {
+      position: absolute;
+      width: 300px;
+      height: 75px;
+      z-index: 2;
+      opacity: 0.9;
+      transition: transform 0.3s ease;
+    }
+
+    .button-one {
+      top: 310px;
+      left: 100px;
+    }
+
+    .button-two {
+      top: 380px;
+      left: 80px;
+    }
+
+    .button-three {
+      top: 450px;
+      left: 105px;
+    }
+
+    .button-one:hover, .button-two:hover, .button-three:hover {
+      transform: scale(1.1);
+    }
+
+    /* Music Button and Volume */
+    .music-toggle-btn {
+      position: absolute;
+      top: 20px;
+      right: 150px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 2;
+    }
+
+    .music-toggle-btn:hover {
+      background-color: rgba(128, 0, 0, 0.8);
+    }
+
+    .volume-slider {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 120px;
+      height: 5%;
+      transform-origin: 50% 50%;
+      z-index: 2;
+    }
+
+    .volume-slider::-webkit-slider-runnable-track,
+    .volume-slider::-moz-range-track,
+    .volume-slider::-ms-track {
+      background: black;
+      border-radius: 10px;
+      height: 15px;
+    }
+
+    .volume-slider::-webkit-slider-thumb,
+    .volume-slider::-moz-range-thumb,
+    .volume-slider::-ms-thumb {
+      appearance: none;
+      background: black;
+      border: 2px solid #000;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    /* Carousel */
+    .carousel-container {
+      position: absolute;
+      top: 30%;
+      right: 12%;
+      width: 500px;
+      height: 400px;
+      z-index: 3;
+      overflow: hidden;
+      border-radius: 15px;
+      opacity: 0.7;
+      background-color: rgba(0, 0, 0, 0.3);
+      animation: glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      0% {
+        box-shadow: 0 0 5px rgba(128, 0, 0, 0.3), 0 0 15px rgba(128, 0, 0, 0.3), 0 0 30px rgba(128, 0, 0, 0.3);
+      }
+      100% {
+        box-shadow: 0 0 10px rgba(128, 0, 0, 0.8), 0 0 25px rgba(128, 0, 0, 0.8), 0 0 50px rgba(128, 0, 0, 0.8);
+      }
+    }
+
+    .carousel {
+      display: flex;
+      transition: transform 0.5s ease;
+    }
+
+    .carousel img {
+      width: 500px;
+      height: 400px;
+      object-fit: cover;
+    }
+
+    .carousel-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      z-index: 4;
+      opacity: 0.5;
+    }
+
+    .prev-btn {
+      left: 5%;
+    }
+
+    .next-btn {
+      right: 5%;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Background Music -->
+<audio id="background-music" preload="auto" loop>
+  <source src="Assets/BGmusic.mp3" type="audio/mp3">
+  Your browser does not support the audio element.
+</audio>
+
+<!-- Music Toggle Button -->
+<button class="music-toggle-btn" id="music-toggle-btn">
+  <span id="music-icon">🔊</span>
+</button>
+
+<!-- Volume Control -->
+<input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.01" value="1">
+
+<!-- Images -->
+<img src="Assets/box.png" class="image-above-bg" alt="Box Image">
+<img src="Assets/myEportfolio.png" class="image-on-top" alt="myEportfolio">
+<img src="Assets/2024.png" class="image-on-top1" alt="2024">
+
+<!-- Links to Other Pages -->
+<a href="portfolio.html" target="_blank"><img src="Assets/portfolio.png" class="button-one" alt="porfolioPage"></a>
+<a href="aboutMe.html" target="_blank"><img src="Assets/aboutme.png" class="button-two" alt="aboutMePage"></a>
+<a href="aboutMe.html#section-contact" target="_blank"><img src="Assets/contactMe.png" class="button-three" alt="contactMe"></a>
+
+<!-- Carousel -->
+<div class="carousel-container" id="carousel-container">
+  <button class="carousel-button prev-btn" id="prev-btn">❮</button>
+  <button class="carousel-button next-btn" id="next-btn">❯</button>
+  <div class="carousel" id="carousel">
+    <img src="Assets/image1.jpg" alt="Image 1">
+    <img src="Assets/image2.jpg" alt="Image 2">
+    <img src="Assets/image3.jpg" alt="Image 3">
+  </div>
+</div>
+
+<!-- JavaScript for Music Control and Carousel -->
+<script>
+  // Music Control
+  const musicPlayer = document.getElementById('background-music');
+  const musicToggleBtn = document.getElementById('music-toggle-btn');
+  const volumeControl = document.getElementById('volume-control');
+  const musicIcon = document.getElementById('music-icon');
+
+  musicToggleBtn.addEventListener('click', () => {
+    if (musicPlayer.paused) {
+      musicPlayer.play();
+      musicIcon.textContent = "🔊";
+    } else {
+      musicPlayer.pause();
+      musicIcon.textContent = "🔇";
+    }
+  });
+
+  volumeControl.addEventListener('input', (e) => {
+    musicPlayer.volume = e.target.value;
+  });
+
+
+  // Carousel
+  const carouselContainer = document.getElementById('carousel-container');
+  const carousel = document.getElementById('carousel');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  let currentIndex = 0;
+  const images = carousel.querySelectorAll('img');
+  const totalImages = images.length;
+
+  prevBtn.addEventListener('click', () => {
+    currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+    updateCarousel();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    currentIndex = (currentIndex + 1) % totalImages;
+    updateCarousel();
+  });
+
+  function updateCarousel() {
+    const offset = -currentIndex * 500;
+    carousel.style.transform = `translateX(${offset}px)`;
+  }
+
+  setInterval(() => {
+    currentIndex = (currentIndex + 1) % totalImages;
+    updateCarousel();
+  }, 5000);
+
+  // Function to disable carousel
+  function disableFeatures() {
+    // Disable Carousel
+    if (window.innerWidth < 1200 || window.innerHeight < 630) {
+      carouselContainer.style.display = 'none'; // Hide the carousel
+    } else {
+      carouselContainer.style.display = 'block'; // Show the carousel
+    }
+  }
+
+  // Call the function initially and on window resize
+  disableFeatures();
+  window.addEventListener('resize', disableFeatures);
+</script>
+
+<script type="module" src="neonCursor.js"></script>
+
+</body>
+
+</html>
