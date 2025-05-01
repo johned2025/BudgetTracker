@@ -6,7 +6,8 @@ session_start();
 
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
+require_once 'db_config.php';
+$mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Check the connection. 
 if (mysqli_connect_errno()) {
