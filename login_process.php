@@ -8,7 +8,6 @@ session_start();
 // MySQLi Connection Logic
 require_once 'db_config.php';
 $mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
 // Check the connection. 
 if (mysqli_connect_errno()) {
     printf("Connect failed: %s\n", mysqli_connect_error());
@@ -31,19 +30,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     try{
         
-        // Create and execute a query
-        $sql = "SELECT * FROM users WHERE username = '$username' AND password = SHA1('$password')";
-
-        $result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
+        // Create prepared statement
+        $sql = $stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ? AND password = SHA1(?)");
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $mysqli->error);
+        }
+        //binding stamtement with user input
+        $stmt->bind_param("ss", $username, $password);
+        //
+        $stmt->execute();
+        //
+        $result = $stmt->get_result();
+        
 
         //get the number of rows in the result set; should be 1 if a match
-        if (mysqli_num_rows($result) == 1) {
+        if ($result->num_rows == 1) {
 
             //if authorized, get the values of f_name l_name
-            while ($info = mysqli_fetch_array($result)) {
-                $_SESSION['user_id'] = stripslashes($info['user_id']);
-                $_SESSION['username'] = stripslashes($info['username']);
-            }
+            $info = $result->fetch_assoc();  
+
+            $_SESSION['user_id'] = $info['user_id'];
+            $_SESSION['username'] = $info['username'];
 
             header('Location: dashboard.php');
             exit();
@@ -54,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: login.php');
             exit();
         }
+        $stmt->close();
         
     } catch (Exception $e) {
         $_SESSION['error_message'] = "An error occurred. Please try again later.";
