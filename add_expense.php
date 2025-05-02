@@ -13,13 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-// Check the connection. 
-if (mysqli_connect_errno()) {
-    echo json_encode(['error' => 'Database connection failed: ' . mysqli_connect_error()]);
-    exit();
-}
+require_once 'db_connect.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

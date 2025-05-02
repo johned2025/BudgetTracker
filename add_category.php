@@ -11,13 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-// Check the connection
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
-}
+require_once 'db_connect.php';
 
 // Fetch all categories
 $query = "SELECT * FROM categories";
@@ -34,9 +28,13 @@ if (isset($_GET['delete_id'])) {
     
     try {
         // Prepare the SQL statement to delete the category
-        $sql = "DELETE FROM expenses WHERE category_id = $delete_id";
+        $stmt =$mysqli->prepare( "DELETE FROM expenses WHERE category_id = ?");
         
-        $result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
+        if (!$stmt) {
+            die("Prepare failed: " . $mysqli->error);
+        }
+        $stmt->bind_param("i", $delete_id);
+        $stmt->execute();
         
         $sql_cat = "DELETE FROM categories WHERE category_id = $delete_id";
         
