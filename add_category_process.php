@@ -6,15 +6,7 @@ session_start();
 
 
 // MySQLi Connection Logic
-require_once 'db_config.php';
-$mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-// Check the connection. 
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
-}
-
+require_once 'db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $categoryName = trim(filter_input(INPUT_POST, 'categoryName'));
