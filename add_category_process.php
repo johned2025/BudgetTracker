@@ -6,7 +6,8 @@ session_start();
 
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
+require_once 'db_config.php';
+$mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Check the connection. 
 if (mysqli_connect_errno()) {
@@ -29,27 +30,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $category_name = mysqli_real_escape_string($mysqli, $categoryName); 
 
     try {
-        $sql = "SELECT * FROM categories WHERE category_name = '$categoryName'";
-        
-        $result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
-        
-        if (mysqli_num_rows($result) >= 1) {
-            $_SESSION['error_message'] = "Category already exist!";
+        // Prepare the SQL statement
+        $stmt = $mysqli->prepare("SELECT * FROM categories WHERE category_name = ?");
+        if (!$stmt) {
+            die("Prepare failed: " . $mysqli->error);
+        }
+        $stmt->bind_param("s", $categoryName);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        // Check if the category already exists
+        if ($result->num_rows >= 1) {
+            $_SESSION['error_message'] = "Category already exists!";
             header('Location: add_category.php');
             exit();
         }
+        $stmt->close();
+
         
-        $query = "INSERT INTO categories (category_name) VALUES ('$category_name')";
+        $query = $mysqli->prepare( "INSERT INTO categories (category_name) VALUES (?)");
+        $query->bind_param("s", $categoryName); 
         
         // Execute the query
-        if (mysqli_query($mysqli, $query)) {
+        if ($query->execute()) {
             $_SESSION['message'] = "Category added successfully!";
-            header('Location: dashboard.php');
+            header('Location: add_category.php');
             exit();
         } else {
-            throw new Exception("Error executing query: " . mysqli_error($mysqli));
+            throw new Exception("Error executing query: " . $query->error);
         }
-
+        $query->close();
     } catch (Exception $e) {
         $_SESSION['error_message'] = "Error occurred: " . $e->getMessage();
         header('Location: add_category.php');
