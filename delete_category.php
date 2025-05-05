@@ -11,7 +11,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // MySQLi Connection 
-require_once 'db_connect.php';
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage()); 
+}
 
 
 // Check if delete action is triggered

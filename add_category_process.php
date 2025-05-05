@@ -6,7 +6,11 @@ session_start();
 
 
 // MySQLi Connection Logic
-require_once 'db_connect.php';
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage()); 
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $categoryName = trim(filter_input(INPUT_POST, 'categoryName'));

@@ -12,8 +12,12 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 
-// MySQLi Connection Logic
-require_once 'db_connect.php';
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+    exit();
+}
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

@@ -1,12 +1,11 @@
 <?php
 session_start();
-
+header('Content-Type: application/json');
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-// Check the connection
-if (mysqli_connect_errno()) {
-    echo json_encode(['error' => 'Database connection failed']);
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
     exit();
 }
 
