@@ -95,4 +95,30 @@ function getTotalYearlyAmount(mysqli $mysqli, int $user_id, int $filter_year): f
     $stmt->close();
     return (float)$total;
 }
+function getCategoryExpensesByYear($mysqli, $user_id, $year) {
+    $query = "
+        SELECT c.category_name, SUM(e.amount) AS total_expense
+        FROM expenses e
+        JOIN categories c ON e.category_id = c.category_id
+        WHERE YEAR(e.expense_date) = ?
+        AND e.user_id = ?
+        GROUP BY c.category_name
+    ";
+
+    $stmt = $mysqli->prepare($query);
+    $stmt->bind_param("ii", $year, $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $categories = [];
+    $totals = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $categories[] = $row['category_name'];
+        $totals[] = $row['total_expense'];
+    }
+
+    return ['categories' => $categories, 'totals' => $totals];
+}
+
 
