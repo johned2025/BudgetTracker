@@ -10,16 +10,12 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 
-// MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-/* Check the connection. */
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage()); 
 }
-
-
+require_once 'expense_model.php';
 $user_id = $_SESSION['user_id'];
 
 // Get the current year as default value
@@ -28,48 +24,14 @@ $current_year = date('Y');
 $filter_year = isset($_POST['year']) ? $_POST['year'] : $current_year;
 
 // Query to fetch distinct years from the expenses table for the logged-in user
-$query_years = "
-    SELECT DISTINCT YEAR(expense_date) AS year
-    FROM expenses
-    WHERE user_id = '$user_id'
-    ORDER BY year DESC
-";
-
-$result_years = mysqli_query($mysqli, $query_years) or die(mysqli_error($mysqli)); //!! Corrected variable
-$years = [];
-
-while ($row = mysqli_fetch_array($result_years, MYSQLI_ASSOC)) {
-    $years[] = $row;
-}
+$years = getAvailableYears($mysqli, $user_id);
 
 // Query to fetch the total expenses for the selected year
-$query_total_yearly = "
-    SELECT SUM(amount) AS total_yearly_amount
-    FROM expenses
-    WHERE user_id = '$user_id'
-    AND YEAR(expense_date) = $filter_year
-";
-
-$result_total_yearly = mysqli_query($mysqli, $query_total_yearly) or die(mysqli_error($mysqli));
-$row_total_yearly = mysqli_fetch_assoc($result_total_yearly);
-$total_yearly_amount = $row_total_yearly['total_yearly_amount'] ?? 0;
+$total_yearly_amount = getTotalYearlyAmount( $mysqli, $user_id, $filter_year);
 
 // Query to fetch monthly expenses for the selected year
-$query_monthly_expenses = "
-    SELECT MONTH(expense_date) AS month, SUM(amount) AS total_amount
-    FROM expenses
-    WHERE user_id = '$user_id'
-    AND YEAR(expense_date) = '$filter_year'
-    GROUP BY MONTH(expense_date)
-    ORDER BY month ASC
-"; //!! Added query to fetch monthly expenses
+$yearly_expenses = getYearlyExpensesSummary( $mysqli, $user_id, $filter_year);
 
-$result_monthly_expenses = mysqli_query($mysqli, $query_monthly_expenses) or die(mysqli_error($mysqli));
-$yearly_expenses = [];
-
-while ($row = mysqli_fetch_array($result_monthly_expenses, MYSQLI_ASSOC)) {
-    $yearly_expenses[] = $row;
-}
 ?>
 
 <!DOCTYPE html>

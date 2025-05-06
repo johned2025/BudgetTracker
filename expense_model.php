@@ -53,3 +53,46 @@ function getExpensesByMonth($mysqli, $user_id, $year, $month) {
     }
     return $expenses;
 }
+function getYearlyExpensesSummary(mysqli $mysqli, int $user_id, int $filter_year): array {
+    $query = "
+        SELECT MONTH(expense_date) AS month, SUM(amount) AS total_amount
+        FROM expenses
+        WHERE user_id = ?
+        AND YEAR(expense_date) = ?
+        GROUP BY MONTH(expense_date)
+        ORDER BY month ASC
+    ";
+
+    $stmt = $mysqli->prepare($query);
+    $stmt->bind_param("ii", $user_id, $filter_year);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $summary = [];
+    while ($row = $result->fetch_assoc()) {
+        $summary[] = $row;
+    }
+
+    $stmt->close();
+    return $summary;
+}
+function getTotalYearlyAmount(mysqli $mysqli, int $user_id, int $filter_year): float {
+    $query = "
+        SELECT SUM(amount) AS total_yearly_amount
+        FROM expenses
+        WHERE user_id = ?
+        AND YEAR(expense_date) = ?
+    ";
+
+    $stmt = $mysqli->prepare($query);
+    $stmt->bind_param("ii", $user_id, $filter_year);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $row = $result->fetch_assoc();
+    $total = $row['total_yearly_amount'] ?? 0;
+
+    $stmt->close();
+    return (float)$total;
+}
+
