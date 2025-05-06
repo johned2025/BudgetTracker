@@ -10,60 +10,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-// Check the connection
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
-}
-
-// Fetch all categories
-$query = "SELECT * FROM categories";
-$result = mysqli_query($mysqli, $query) or die(mysqli_error($mysqli));
-
-$categories = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $categories[] = $row;
-}
-
-// Check if delete action is triggered
-if (isset($_GET['delete_id'])) {
-    $delete_id = intval($_GET['delete_id']);
-    
-    try {
-        // Prepare the SQL statement to delete the category
-        $sql = "DELETE FROM expenses WHERE category_id = $delete_id";
-        
-        $result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
-        
-        $sql_cat = "DELETE FROM categories WHERE category_id = $delete_id";
-        
-        $result_cat = mysqli_query($mysqli, $sql_cat) or die(mysqli_error($mysqli));
-        
-        if (mysqli_query($mysqli, $sql_cat)) {
-            
-            $_SESSION['message'] = "Category deleted successfully!";
-            header('Location: add_category.php');
-            exit();
-            
-        } else {
-            throw new Exception("Error executing query: " . mysqli_error($mysqli));
-        }
-        
-    } catch (Exception $e) {
-        $_SESSION['error_message'] = "An error occurred. Please try again later.";
-        header('Location: add_category.php');
-        exit();
-    }
-}
-
-// Close the database connection
-mysqli_close($mysqli);
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -106,32 +53,63 @@ mysqli_close($mysqli);
 
             <p><a href="dashboard.php">Back to Dashboard</a></p>
 
-            <!-- Table of Categories -->
-            <h3>Categories</h3>
             
-            <?php if (empty($categories)) { ?>
-                <p>No categories available.</p>
-            <?php } else { ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category Name</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($categories as $category) { ?>
-                            <tr>
-                                <td><?php echo $category['category_name']; ?></td>
-                                <td>
-                                    <a href="add_category.php?delete_id=<?php echo $category['category_id']; ?>" onclick="return confirm('Are you sure you want to delete this category?\n\nNote: Deleting this category will also delete expenses data.');">Delete</a>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            <?php } ?>
-        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                fetch('ajax_categories.php') 
+                    .then(response => response.json())
+                    .then(data => {
+                        const container = document.querySelector(".container");
+                        const tableSection = document.createElement("div");
+                        tableSection.innerHTML = "<h3>Categories</h3>";
+
+                        if (!data.categories || data.categories.length === 0) {
+                            tableSection.innerHTML += "<p>No categories available.</p>";
+                        } else {
+                            const table = document.createElement("table");
+                            const thead = document.createElement("thead");
+                            thead.innerHTML = `
+                                <tr>
+                                    <th>Category Name</th>
+                                    <th>Action</th>
+                                </tr>`;
+                            table.appendChild(thead);
+
+                            const tbody = document.createElement("tbody");
+
+                            data.categories.forEach(cat => {
+                                const row = document.createElement("tr");
+
+                                const nameCell = document.createElement("td");
+                                nameCell.textContent = cat.category_name;
+
+                                const actionCell = document.createElement("td");
+                                const delLink = document.createElement("a");
+                                delLink.href = "delete_category.php?delete_id=" + cat.category_id;
+                                delLink.textContent = "Delete";
+                                delLink.onclick = function () {
+                                    return confirm('Are you sure you want to delete this category?\n\nIMPORTANT NOTE! Deleting this category will also delete expenses data.');
+                                };
+
+                                actionCell.appendChild(delLink);
+                                row.appendChild(nameCell);
+                                row.appendChild(actionCell);
+
+                                tbody.appendChild(row);
+                            });
+
+                            table.appendChild(tbody);
+                            tableSection.appendChild(table);
+                        }
+
+                        container.appendChild(tableSection);
+                    })
+                    .catch(error => {
+                        console.error("Error fetching categories:", error);
+                    });
+            });
+        </script>
+
     </body>
 </html>
 

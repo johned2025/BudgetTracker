@@ -6,12 +6,10 @@ session_start();
 
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-/* Check the connection. */
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage()); 
 }
 
 

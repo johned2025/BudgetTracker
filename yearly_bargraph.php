@@ -12,13 +12,12 @@ if (!isset($_SESSION['user_id'])) {
 
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-/* Check the connection. */
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage()); 
 }
+require_once 'expense_model.php';
 
 
 $user_id = $_SESSION['user_id'];
@@ -27,22 +26,9 @@ $user_id = $_SESSION['user_id'];
 $year = isset($_POST['year']) ? $_POST['year'] : date('Y');
 
 // Query to get the total expense per category for the selected year
-$query = "
-    SELECT c.category_name, SUM(e.amount) AS total_expense
-    FROM expenses e
-    JOIN categories c ON e.category_id = c.category_id
-    WHERE YEAR(e.expense_date) = '$year'
-    AND e.user_id = '$user_id'
-    GROUP BY c.category_name
-";
-$categories_expenses = mysqli_query($mysqli, $query) or die(mysqli_error($mysqli)); 
-$categories = [];
-$totals = [];
-
-while ($row = mysqli_fetch_array($categories_expenses, MYSQLI_ASSOC)) {
-    $categories[] = $row['category_name'];
-    $totals[] = $row['total_expense'];
-}
+$data = getCategoryExpensesByYear($mysqli, $user_id, $year);
+$categories = $data['categories'];
+$totals = $data['totals'];
 
 ?>
 
@@ -75,9 +61,7 @@ while ($row = mysqli_fetch_array($categories_expenses, MYSQLI_ASSOC)) {
                 <select name="year" id="year" onchange="this.form.submit()">
                     <?php 
                     // Generate years dynamically based on available data
-                    $year_query = "SELECT DISTINCT YEAR(expense_date) AS year FROM expenses WHERE user_id = '$user_id' ORDER BY year DESC";
-                    $years= mysqli_query($mysqli, $year_query) or die(mysqli_error($mysqli)); 
-
+                    $years = getAvailableYears($mysqli, $user_id);
                     foreach ($years as $row) {
                         $selected = ($row['year'] == $year) ? 'selected' : '';
                         echo "<option value='{$row['year']}' {$selected}>{$row['year']}</option>";

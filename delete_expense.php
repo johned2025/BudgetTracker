@@ -12,12 +12,10 @@ if (!isset($_SESSION['user_id'])) {
 
 
 // MySQLi Connection Logic
-$mysqli = mysqli_connect("localhost", "cs213user", "letmein", "budgetDB");
-
-/* Check the connection. */
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
+try {
+    require_once 'db_connect.php';
+} catch (Exception $e) {
+    die("Error: " . $e->getMessage()); 
 }
 
 
@@ -28,16 +26,15 @@ if (isset($_GET['id'])  && is_numeric($_GET['id'])) {
     
     try {
         // Prepare the SQL statement to delete the expense
-        $sql = "DELETE FROM expenses WHERE expense_id = $expense_id AND user_id = $user_id";
-        
-        $result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
-        
-        if (mysqli_query($mysqli, $sql)) {
+        $stmt = $mysqli->prepare("DELETE FROM expenses WHERE expense_id = ? AND user_id = ?");
+        if (!$stmt) die("Prepare failed: " . $mysqli->error);
+            
+        $stmt->bind_param("ii", $expense_id, $user_id);        
+        if (stmt->execute()) {
             
             $_SESSION['message'] = "Expense deleted successfully!";
             header('Location: dashboard.php');
             exit();
-            
         } else {
             throw new Exception("Error executing query: " . mysqli_error($mysqli));
         }
